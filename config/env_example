@@ -1,0 +1,4 @@
+OEXPENSES_PORT=3000
+GOOGLE_CLIENT_ID=blabla
+GOOGLE_CLIENT_SECRET=blibli
+GOOGLE_REDIRECT_URL=http://localhost:3000/oauthcallback

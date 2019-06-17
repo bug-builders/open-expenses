@@ -1,0 +1,38 @@
+{
+  "name": "open-expenses",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:bug-builders/open-expenses.git",
+  "author": "agix <florian.gaultier@gmail.com>",
+  "scripts": {
+    "pm2": "node_modules/.bin/pm2",
+    "start": "yarn run pm2 start index.js",
+    "stop": "yarn run pm2 stop all",
+    "dev": "yarn run pm2 kill && yarn run pm2 start ./config/ecosystem.config.js -f --watch && yarn run logs",
+    "logs": "yarn run pm2 logs",
+    "lint": "./node_modules/.bin/eslint --fix --config ./config/eslintrc.yml index.js app/*.js app/**/*.js"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^5.0.0",
+    "eslint-plugin-import": "^2.17.3",
+    "eslint-plugin-prettier": "^3.1.0",
+    "prettier": "^1.18.2"
+  },
+  "dependencies": {
+    "axios": "^0.19.0",
+    "bluebird": "^3.5.5",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dotenv": "^8.0.0",
+    "express": "^4.17.1",
+    "googleapis": "39",
+    "helmet": "^3.18.0",
+    "jwt-decode": "^2.2.0",
+    "pm2": "^3.5.1",
+    "redis": "^2.8.0",
+    "uuid": "^3.3.2"
+  }
+}
