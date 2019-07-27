@@ -87,7 +87,13 @@ $('#analyzeFolder').click(async function() {
 
 $('#selectFolder').click(async function() {
   const [folderId] = $('#jstree_demo_div').jstree('get_selected');
-  const folder = $('#jstree_demo_div').jstree('get_node', folderId);
+  let folder = $('#jstree_demo_div').jstree('get_node', folderId);
+  if(folder === false) {
+    folder = {
+      text: 'root',
+      id: 'root',
+    }
+  }
   window.localStorage.setItem('oexpenses-folderId', JSON.stringify(folder));
   await loadExpenses(folder);
 })
