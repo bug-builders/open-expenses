@@ -2,3 +2,7 @@ OEXPENSES_PORT=3000
 GOOGLE_CLIENT_ID=blabla
 GOOGLE_CLIENT_SECRET=blibli
 GOOGLE_REDIRECT_URL=http://localhost:3000/oauthcallback
+GOOGLE_BUCKET_NAME=open-expenses
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/key.json
+GOOGLE_PROJECT_ID=projec_id
+OEXPENSES_ALLOWED_USERS=comptable@gmail.com,comptable2@gmail.com

@@ -28,11 +28,20 @@ app.get('/oauth', (req, res) => {
 
 app.get('/oauthcallback', async (req, res) => {
   const sessionId = await gdrive.getToken(req.query.code);
-  res.type('text/html');
-  res.status(200);
-  res.send(
-    `<script>window.localStorage.setItem('oexpenses-sessionId', '${sessionId}'); location.href='/';</script>`,
-  );
+  if(sessionId === false) {
+    res.type('text/html');
+    res.status(403);
+    res.send(
+      'You are not allowed to use this application',
+    );
+  } else {
+    res.type('text/html');
+    res.status(200);
+    res.send(
+      `<script>window.localStorage.setItem('oexpenses-sessionId', '${sessionId}'); location.href='/';</script>`,
+    );
+  }
+
 });
 
 app.use('/v0/', routes);
