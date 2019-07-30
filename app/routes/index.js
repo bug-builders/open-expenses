@@ -22,8 +22,13 @@ router.all('/*', async (req, res, next) => {
 });
 
 router.get('/list/', async (req, res) => {
-  const list = await gdrive.list(req.header('OExpenses'));
-  res.json(list);
+  try {
+    const list = await gdrive.list(req.header('OExpenses'));
+    res.json(list);
+  } catch(e) {
+    res.status('401');
+    res.json({ redirect: '/oauth' });
+  }
 });
 
 router.get('/list/:folderId', async (req, res) => {
