@@ -57,6 +57,7 @@ router.get('/analyze/:folderId', async (req, res) => {
         return Promise.resolve(dst);
       })
       .then(async dst => {
+        console.log(`Uploading ${dst}`);
         if (typeof txt !== 'undefined') {
           await gdrive.editFileContent(req.header('OExpenses'), dst, txt.id);
         } else {

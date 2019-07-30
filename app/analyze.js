@@ -31,26 +31,28 @@ async function getGVisionResult(pdf) {
   const [files] = await storage
     .bucket(bucketName)
     .getFiles({ prefix: resDir, delimiter: '/' });
-  return new Promise(async resolve => {
-    if (files.length === 0) {
+  if (files.length === 0) {
+    await new Promise(async resolve => {
       setTimeout(() => {
-        resolve(getGVisionResult(pdf));
-      }, 1000);
-    } else {
-      let concatPages = '';
-      for (let i = 0; i < files.length; i += 1) {
-        const file = files[i];
-        const [fileContent] = await file.download();
-        const gvisionResult = JSON.parse(fileContent.toString('utf8'));
-        // eslint-disable-next-line
-        gvisionResult.responses.forEach(response => {
-          concatPages += `${response.fullTextAnnotation.text}\n`;
-        });
-      }
-      fs.writeFileSync(dst, concatPages);
-    }
-    resolve(dst);
-  });
+        console.log(`Wait for analysis for ${pdf}`)
+        resolve();
+      }, 1000)
+    })
+    return getGVisionResult(pdf);
+  }
+  console.log(`Analysis terminated for ${pdf}`)
+  let concatPages = '';
+  for (let i = 0; i < files.length; i += 1) {
+    const file = files[i];
+    const [fileContent] = await file.download();
+    const gvisionResult = JSON.parse(fileContent.toString('utf8'));
+    // eslint-disable-next-line
+    gvisionResult.responses.forEach(response => {
+      concatPages += `${response.fullTextAnnotation.text}\n`;
+    });
+  }
+  fs.writeFileSync(dst, concatPages);
+  return dst;
 }
 
 async function pdfToVision(pdf) {
