@@ -1,4 +1,6 @@
 const fs = require('fs');
+const cp = require('child_process');
+const AdmZip = require('adm-zip');
 const router = require('express').Router();
 const gdrive = require('../gdrive');
 const analyze = require('../analyze');
@@ -90,8 +92,42 @@ router.get('/pdfs/:folderId', async (req, res) => {
   res.json(list);
 });
 
-router.get('/invoice/:fileId', async (req, res) => {
-  const [fileId, ext] = req.params.fileId.split('.');
+router.get('/generate/:folderName.:ext', async (req, res) => {
+  const safeName = req.params.folderName.replace(new RegExp('/', 'g'), '_');
+  const fullList = await gdrive.pdfs(
+    req.query.OExpenses,
+    req.query.folderId,
+  );
+  const list = fullList.filter(l => l.mimeType === 'application/pdf');
+  const zip = new AdmZip();
+  const expenses = []
+
+  for (let i = 0; i < list.length; i += 1) {
+    const name = list[i].name.substr(0, list[i].name.length - 4);
+    const json = fullList.find(f => f.name === `${name}.json`);
+
+    const pdf = await gdrive.download(req.query.OExpenses, list[i].id, 'pdf');
+    const jsonFile = await gdrive.download(req.query.OExpenses, json.id, 'json');
+    const git = cp.spawnSync('git', ['hash-object', pdf]);
+    const expense = JSON.parse(fs.readFileSync(jsonFile));
+    const cleanedName = list[i].name.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    expense.sha = git.stdout.toString().trim();
+    expense.doc = `docs/${cleanedName}`
+    expenses.push(expense);
+    zip.addLocalFile(pdf, 'docs/', cleanedName);
+  }
+
+  const jsonPath = `${process.env.TEMP_DIRECTORY || '/tmp'}/expenses_${safeName}.json`;
+  fs.writeFileSync(jsonPath, JSON.stringify(expenses, '', 2), 'utf-8');
+
+  zip.addLocalFile(jsonPath);
+
+  const zipPath = `${process.env.TEMP_DIRECTORY || '/tmp'}/${safeName}.zip`;
+  zip.writeZip(zipPath);
+  res.sendFile(zipPath);
+})
+
+router.get('/invoice/:fileId.:ext', async (req, res) => {
   const file = await gdrive.download(req.query.OExpenses, fileId, ext);
   res.sendFile(file);
 });

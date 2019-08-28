@@ -161,6 +161,7 @@ async function loadExpenses(folder) {
 
   const pdfs = list.filter(f => f.mimeType === 'application/pdf');
 
+  let totalThumb = 0;
   for(let i = 0; i < pdfs.length; i += 1) {
     const file = pdfs[i];
     const name = file.name.substr(0, file.name.length - 4);
@@ -179,10 +180,15 @@ async function loadExpenses(folder) {
     }
 
     if(typeof(json) !== 'undefined' && typeof(txt) !== 'undefined'){
+      totalThumb += 1;
       icon = 'thumb-up';
     }
 
     $('#jstree_pdf_div').jstree('create_node', null, {id: file.id, text: name, icon: `oi oi-${icon}`, data: {txt: typeof(txt) !== 'undefined' && txt.id, json: typeof(json) !== 'undefined' && json.id}}, 'last', false, false);
+  }
+  if(totalThumb === pdfs.length) {
+    $('#generateExpense').css('display', 'inline-block');
+    $('#generateExpense').attr('href', `/v0/generate/${folder.text}.zip?OExpenses=${sessionId}&folderId=${folder.id}`)
   }
 }
 

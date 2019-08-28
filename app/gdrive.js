@@ -111,7 +111,7 @@ const pdfs = async (sessionId, path = 'root') => {
   oauth2Client.setCredentials(session);
   const drive = google.drive({ version: 'v3', auth: oauth2Client });
   const driveList = await drive.files.list({
-    q: `'${path}' in parents and trashed=false`,
+    q: `'${path.replace(new RegExp("'", 'g'), '')}' in parents and trashed=false`,
     orderBy: 'name',
   });
   return driveList.data.files;
