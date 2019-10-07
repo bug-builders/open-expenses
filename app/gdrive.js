@@ -40,7 +40,9 @@ async function downloadFile(accessToken, fileId, ext = '') {
 const setToken = async tokens => {
   const idToken = jwtDecode(tokens.id_token);
   console.log(idToken.email);
-  if(process.env.OEXPENSES_ALLOWED_USERS.split(',').indexOf(idToken.email) !== -1) {
+  if (
+    process.env.OEXPENSES_ALLOWED_USERS.split(',').indexOf(idToken.email) !== -1
+  ) {
     const sessionId = uuidv5(
       idToken.email,
       '6f70656e-2d65-7870-656e-7365732d6964',
@@ -111,7 +113,10 @@ const pdfs = async (sessionId, path = 'root') => {
   oauth2Client.setCredentials(session);
   const drive = google.drive({ version: 'v3', auth: oauth2Client });
   const driveList = await drive.files.list({
-    q: `'${path.replace(new RegExp("'", 'g'), '')}' in parents and trashed=false`,
+    q: `'${path.replace(
+      new RegExp("'", 'g'),
+      '',
+    )}' in parents and trashed=false`,
     orderBy: 'name',
   });
   return driveList.data.files;

@@ -27,7 +27,7 @@ router.get('/list/', async (req, res) => {
   try {
     const list = await gdrive.list(req.header('OExpenses'));
     res.json(list);
-  } catch(e) {
+  } catch (e) {
     res.status('401');
     res.json({ redirect: '/oauth' });
   }
@@ -94,30 +94,34 @@ router.get('/pdfs/:folderId', async (req, res) => {
 
 router.get('/generate/:folderName.:ext', async (req, res) => {
   const safeName = req.params.folderName.replace(new RegExp('/', 'g'), '_');
-  const fullList = await gdrive.pdfs(
-    req.query.OExpenses,
-    req.query.folderId,
-  );
+  const fullList = await gdrive.pdfs(req.query.OExpenses, req.query.folderId);
   const list = fullList.filter(l => l.mimeType === 'application/pdf');
   const zip = new AdmZip();
-  const expenses = []
+  const expenses = [];
 
   for (let i = 0; i < list.length; i += 1) {
     const name = list[i].name.substr(0, list[i].name.length - 4);
     const json = fullList.find(f => f.name === `${name}.json`);
 
     const pdf = await gdrive.download(req.query.OExpenses, list[i].id, 'pdf');
-    const jsonFile = await gdrive.download(req.query.OExpenses, json.id, 'json');
+    const jsonFile = await gdrive.download(
+      req.query.OExpenses,
+      json.id,
+      'json',
+    );
     const git = cp.spawnSync('git', ['hash-object', pdf]);
     const expense = JSON.parse(fs.readFileSync(jsonFile));
-    const cleanedName = list[i].name.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    const cleanedName = list[i].name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
     expense.sha = git.stdout.toString().trim();
-    expense.doc = `docs/${cleanedName}`
+    expense.doc = `docs/${cleanedName}`;
     expenses.push(expense);
     zip.addLocalFile(pdf, 'docs/', cleanedName);
   }
 
-  const jsonPath = `${process.env.TEMP_DIRECTORY || '/tmp'}/expenses_${safeName}.json`;
+  const jsonPath = `${process.env.TEMP_DIRECTORY ||
+    '/tmp'}/expenses_${safeName}.json`;
   fs.writeFileSync(jsonPath, JSON.stringify(expenses, '', 2), 'utf-8');
 
   zip.addLocalFile(jsonPath);
@@ -125,10 +129,14 @@ router.get('/generate/:folderName.:ext', async (req, res) => {
   const zipPath = `${process.env.TEMP_DIRECTORY || '/tmp'}/${safeName}.zip`;
   zip.writeZip(zipPath);
   res.sendFile(zipPath);
-})
+});
 
 router.get('/invoice/:fileId.:ext', async (req, res) => {
-  const file = await gdrive.download(req.query.OExpenses, req.params.fileId, req.params.ext);
+  const file = await gdrive.download(
+    req.query.OExpenses,
+    req.params.fileId,
+    req.params.ext,
+  );
   res.sendFile(file);
 });
 

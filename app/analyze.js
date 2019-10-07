@@ -34,13 +34,13 @@ async function getGVisionResult(pdf) {
   if (files.length === 0) {
     await new Promise(async resolve => {
       setTimeout(() => {
-        console.log(`Wait for analysis for ${pdf}`)
+        console.log(`Wait for analysis for ${pdf}`);
         resolve();
-      }, 1000)
-    })
+      }, 1000);
+    });
     return getGVisionResult(pdf);
   }
-  console.log(`Analysis terminated for ${pdf}`)
+  console.log(`Analysis terminated for ${pdf}`);
   let concatPages = '';
   for (let i = 0; i < files.length; i += 1) {
     const file = files[i];
