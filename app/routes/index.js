@@ -128,7 +128,7 @@ router.get('/generate/:folderName.:ext', async (req, res) => {
 })
 
 router.get('/invoice/:fileId.:ext', async (req, res) => {
-  const file = await gdrive.download(req.query.OExpenses, fileId, ext);
+  const file = await gdrive.download(req.query.OExpenses, req.params.fileId, req.params.ext);
   res.sendFile(file);
 });
 
