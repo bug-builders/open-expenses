@@ -129,6 +129,7 @@ $('#search').keyup(function() {
 });
 
 $('#analyzeFolder').click(async function() {
+  document.getElementById('loader').style.display = 'inline-block';
   const folder = JSON.parse($('#folderTitle').attr('folderId'));
   const analyzeFetch = await fetch(`/v0/analyze/${folder.id}`, {headers: {OExpenses: sessionId}})
   if(analyzeFetch.status === 401) {
@@ -137,20 +138,26 @@ $('#analyzeFolder').click(async function() {
   }
   const analyze = await analyzeFetch.json();
   let oldListNames = [];
+  let loadingExpenseTimeout;
   const pingAnalyze = setInterval(async () => {
     const listFetch = await fetch(`/v0/analyze`, {headers: {OExpenses: sessionId}})
     const listNames = await listFetch.json();
     if(listNames.length !== oldListNames.length){
-      oldListNames = listNames;
-      await loadExpenses(folder);
+      clearTimeout(loadingExpenseTimeout);
+      loadingExpenseTimeout = setTimeout(async () => {
+        oldListNames = listNames;
+        await loadExpenses(folder);
+      }, 1000)
     }
     if(listNames.length === 0) {
+      document.getElementById('loader').style.display = 'none';
       clearInterval(pingAnalyze);
     }
-  }, 1000);
+  }, 2000);
   setTimeout(() => {
+    document.getElementById('loader').style.display = 'none';
     clearInterval(pingAnalyze);
-  }, 30000)
+  }, 60000)
 });
 
 $('#selectFolder').click(async function() {
@@ -258,6 +265,8 @@ async function loadExpenses(folder) {
   if(totalThumb === pdfs.length) {
     $('#generateExpense').css('display', 'inline-block');
     $('#generateExpense').attr('href', `/v0/generate/${folder.text}.zip?OExpenses=${sessionId}&folderId=${folder.id}`)
+  } else {
+    $('#generateExpense').css('display', 'none');
   }
 }
 
