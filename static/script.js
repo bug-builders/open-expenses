@@ -181,8 +181,10 @@ $('#jstree_demo_div').on("changed.jstree", async function (e, data) {
 });
 
 $('#jstree_pdf_div').on("changed.jstree", async function (e, data) {
-  const node = $('#jstree_pdf_div').jstree('get_node', data.selected[0]);
-  await loadInvoice(node);
+  if(data.action === 'select_node') {
+    const node = $('#jstree_pdf_div').jstree('get_node', data.selected[0]);
+    await loadInvoice(node);
+  }
 });
 
 async function loadInvoice(node) {
@@ -300,7 +302,7 @@ if(typeof(sessionId) === 'undefined'){
 
 await createList();
 
-const savedFolder = window.localStorage.getItem('oexpenses-folderId');
+let savedFolder = window.localStorage.getItem('oexpenses-folderId');
 if(typeof(savedFolder) !== 'undefined'){
   await loadExpenses(JSON.parse(savedFolder));
 }
@@ -360,7 +362,7 @@ $('#saveJson').click(async function() {
       })
     })
   }
-  await loadExpenses(JSON.parse(savedFolder));
+  await loadExpenses(JSON.parse(folder));
 })
 
 })();
