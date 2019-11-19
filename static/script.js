@@ -8,22 +8,36 @@ function amount(value) {
   return newValue;
 }
 
-function date(value, index = 0) {
-  let i = index;
-  const commonFormat = [
-    {lang: 'fr', fmt: 'L'},
-    {lang: 'fr', fmt: 'LL'},
-    {lang: 'fr', fmt: 'll'},
-    {lang: 'en', fmt: 'L'},
-    {lang: 'en', fmt: 'LL'},
-    {lang: 'en', fmt: 'll'},
-  ]
-  let newValue = moment(value, commonFormat[0].fmt);
+function date(value, hasSpaces) {
+  let i = 0;
+  const commonFormats = {
+    hasSpaces: [
+      {lang: 'fr', fmt: 'LL'},
+      {lang: 'fr', fmt: 'll'},
+      {lang: 'en', fmt: 'LL'},
+      {lang: 'en', fmt: 'll'},
+    ],
+    hasNoSpace: [
+      {lang: 'fr', fmt: 'L'},
+      {lang: 'en', fmt: 'L'},
+    ]
+  }
+  let commonFormat;
+  if(typeof(hasSpaces) === 'undefined') {
+    commonFormat = commonFormats.hasNoSpace.concat(commonFormats.hasSpaces);
+  } else if(hasSpaces === 0) {
+    commonFormat = commonFormats.hasNoSpace;
+  } else {
+    commonFormat = commonFormats.hasSpaces;
+  }
+  let newValue = moment(value, commonFormat[i].fmt);
   while(!newValue.isValid() && i < commonFormat.length) {
     moment.locale(commonFormat[i].lang);
     newValue = moment(value, commonFormat[i].fmt);
     i += 1;
   }
+
+  console.log(commonFormat[i]);
 
   return newValue;
 }
@@ -35,6 +49,7 @@ function charTypes(str) {
     letter: 0,
     euro: 0,
     spaces: 0,
+    comma: 0,
   }
   for(let i = 0; i < str.length; i += 1) {
     if((str.charCodeAt(i) >= 'A'.charCodeAt(0) && str.charCodeAt(i) <= 'Z'.charCodeAt(0)) || (str.charCodeAt(i) >= 'a'.charCodeAt(0) && str.charCodeAt(i) <= 'z'.charCodeAt(0))){
@@ -45,6 +60,8 @@ function charTypes(str) {
       charset.euro += 1;
     } else if(str.charCodeAt(i) === ' '.charCodeAt(0)){
       charset.spaces += 1;
+    } else if(str.charCodeAt(i) === '.'.charCodeAt(0) || str.charCodeAt(i) === ','.charCodeAt(0)) {
+      charset.comma += 1;
     } else {
       charset.other += 1;
     }
@@ -56,7 +73,11 @@ function guessType(value) {
   const amount_total = parseInt(document.getElementById('amount_total').value, 10);
   const charset = charTypes(value);
 
-  if(charset.letter === 0) {
+  if(date(value, charset.spaces).isValid()) {
+    return 'date';
+  }
+
+  if(charset.other === 0 && charset.letter === 0) {
     if(Number.isNaN(amount_total)){
       return 'amount_total';
     } else {
@@ -66,10 +87,6 @@ function guessType(value) {
 
   if(charset.spaces === 0 && charset.digit > charset.letter) {
     return 'invoice_id';
-  }
-
-  if(date(value).isValid()) {
-    return 'date';
   }
 
   return 'issuer';
