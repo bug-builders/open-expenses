@@ -1,34 +1,87 @@
 (async () => {
 function amount(value) {
-  let newValue = value.replace(',', '.');
+  let newValue = value.replace(',', '');
   newValue = newValue.replace(new RegExp(' ', 'g'), '');
-
-  if(newValue.indexOf('.') !== -1) {
-    newValue = parseFloat(newValue);
-    newValue = parseInt(newValue*100)
-  } else {
-    newValue = parseInt(newValue);
-  }
+  newValue = newValue.replace('.', '');
+  newValue = newValue.replace('€', '');
+  newValue = parseInt(newValue, 10);
   return newValue;
 }
 
 function date(value, index = 0) {
-  let newValue = moment(value);
   let i = index;
   const commonFormat = [
-    'DD/MM/YYYY',
+    {lang: 'fr', fmt: 'L'},
+    {lang: 'fr', fmt: 'LL'},
+    {lang: 'fr', fmt: 'll'},
+    {lang: 'en', fmt: 'L'},
+    {lang: 'en', fmt: 'LL'},
+    {lang: 'en', fmt: 'll'},
   ]
+  let newValue = moment(value, commonFormat[0].fmt);
   while(!newValue.isValid() && i < commonFormat.length) {
-    newValue = moment(value, commonFormat[i]);
+    moment.locale(commonFormat[i].lang);
+    newValue = moment(value, commonFormat[i].fmt);
     i += 1;
   }
 
   return newValue;
 }
 
-function parse() {
+function charTypes(str) {
+  const charset = {
+    other: 0,
+    digit: 0,
+    letter: 0,
+    euro: 0,
+    spaces: 0,
+  }
+  for(let i = 0; i < str.length; i += 1) {
+    if((str.charCodeAt(i) >= 'A'.charCodeAt(0) && str.charCodeAt(i) <= 'Z'.charCodeAt(0)) || (str.charCodeAt(i) >= 'a'.charCodeAt(0) && str.charCodeAt(i) <= 'z'.charCodeAt(0))){
+      charset.letter += 1;
+    } else if(str.charCodeAt(i) >= '0'.charCodeAt(0) && str.charCodeAt(i) <= '9'.charCodeAt(0)) {
+      charset.digit += 1;
+    } else if(str.charCodeAt(i) === '€'.charCodeAt(0)){
+      charset.euro += 1;
+    } else if(str.charCodeAt(i) === ' '.charCodeAt(0)){
+      charset.spaces += 1;
+    } else {
+      charset.other += 1;
+    }
+  }
+  return charset;
+}
+
+function guessType(value) {
+  const amount_total = parseInt(document.getElementById('amount_total').value, 10);
+  const charset = charTypes(value);
+
+  if(charset.letter === 0) {
+    if(Number.isNaN(amount_total)){
+      return 'amount_total';
+    } else {
+      return 'amount_taxes';
+    }
+  }
+
+  if(charset.spaces === 0 && charset.digit > charset.letter) {
+    return 'invoice_id';
+  }
+
+  if(date(value).isValid()) {
+    return 'date';
+  }
+
+  return 'issuer';
+}
+
+function parse(guessed = '') {
   const select = document.getElementById('exampleFormControlSelect1');
   const selectedTextInput = document.getElementById('selectedText');
+  // const guessed = guessType(selectedTextInput.value);
+  if(typeof(guessed) === 'string') {
+    select.value = guessed;
+  }
 
   if(select.value.startsWith('amount_')) {
     const amount_guessed = amount(selectedTextInput.value);
@@ -133,6 +186,7 @@ async function loadInvoice(node) {
 
       $('#exampleModalCenter').modal({backdrop: 'static', keyboard: false})
       $('#selectedText').val(selectedText)
+      parse(guessType(selectedText));
     })
   }
 
@@ -241,6 +295,8 @@ $('#saveChanges').click(function() {
   } else {
     document.getElementById(field).value = value
   }
+  window.getSelection().removeAllRanges();
+  $('#exampleModalCenter').modal('toggle');
 })
 
 $('#saveJson').click(async function() {

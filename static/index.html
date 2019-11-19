@@ -47,8 +47,12 @@
       <div class="col-sm-3 form-group">
         <input type="text" class="form-control" placeholder="Amount total" id="amount_total">
       </div>
-      <div class="col-sm-3 form-group">
+      <div class="col-sm-1 form-group">
         <input type="text" class="form-control" placeholder="Amount TVA" id="amount_taxes">
+      </div>
+      <div class="col-sm-2 form-group">
+        <button class="btn btn-info" onclick="javascript:$('#amount_taxes').val('0');">0%</button>
+        <button class="btn btn-info" onclick="javascript:$('#amount_taxes').val(Math.round(parseInt($('#amount_total').val(), 10)/1.2));">20%</button>
       </div>
       <div class="col-sm-3 form-group">
         <input type="text" class="form-control" placeholder="Date" id="date">
