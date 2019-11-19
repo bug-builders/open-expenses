@@ -37,8 +37,6 @@ function date(value, hasSpaces) {
     i += 1;
   }
 
-  console.log(commonFormat[i]);
-
   return newValue;
 }
 
